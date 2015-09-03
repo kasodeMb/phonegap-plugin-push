@@ -43,6 +43,30 @@
     [self successWithMessage:@"unregistered"];
 }
 
+- (UIMutableUserNotificationCategory *) addCategory:(NSDictionary*) options;
+{
+    NSMutableArray* actions = [[NSMutableArray alloc] init];;
+    
+    for (NSDictionary *action in [options objectForKey:@"actions"]) {
+        UIMutableUserNotificationAction *actionObj;
+        actionObj = [[UIMutableUserNotificationAction alloc] init];
+        [actionObj setActivationMode:UIUserNotificationActivationModeForeground];
+        [actionObj setTitle:[action valueForKey:@"title-loc-key"]];
+        [actionObj setIdentifier:[action valueForKey:@"identifier"]];
+        [actionObj setDestructive:[[action objectForKey:@"destructive"] boolValue]];
+        [actionObj setAuthenticationRequired:NO];
+        [actions addObject:actionObj];
+    }
+    
+    UIMutableUserNotificationCategory *actionCategory;
+    actionCategory = [[UIMutableUserNotificationCategory alloc] init];
+    [actionCategory setIdentifier:[options valueForKey:@"name"]];
+    [actionCategory setActions:actions
+                    forContext:UIUserNotificationActionContextMinimal];
+    
+    return actionCategory;
+}
+
 - (void)init:(CDVInvokedUrlCommand*)command;
 {
     NSLog(@"Push Plugin register called");
@@ -50,6 +74,11 @@
     
     NSMutableDictionary* options = [command.arguments objectAtIndex:0];
     NSMutableDictionary* iosOptions = [options objectForKey:@"ios"];
+    NSMutableArray* categoryArray = [[NSMutableArray alloc] init];;
+    
+    for (NSDictionary *category in [iosOptions objectForKey:@"categories"]) {
+        [categoryArray addObject:[self addCategory:category]];
+    }
     
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     UIUserNotificationType UserNotificationTypes = UIUserNotificationTypeNone;
@@ -96,7 +125,8 @@
     
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     if ([[UIApplication sharedApplication]respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UserNotificationTypes categories:nil];
+        NSSet *categories = [NSSet setWithArray:categoryArray];
+        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UserNotificationTypes categories:categories];
         [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
         [[UIApplication sharedApplication] registerForRemoteNotifications];
     } else {
