@@ -108,7 +108,7 @@ static char launchNotificationKey;
 - (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forRemoteNotification:(NSDictionary *)userInfo completionHandler:(void(^)())completionHandler
 {
     PushPlugin *pushHandler = [self getCommandInstance:@"PushNotification"];
-    [pushHandler currentActionIndentifier:identifier];
+    [pushHandler currentActionIdentifier:identifier];
     
     // Get application state for iOS4.x+ devices, otherwise assume active
     UIApplicationState appState = UIApplicationStateActive;

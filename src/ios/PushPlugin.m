@@ -33,7 +33,7 @@
 @synthesize callbackId;
 @synthesize notificationCallbackId;
 @synthesize callback;
-@synthesize actionIndentifier;
+@synthesize actionIdentifier;
 
 
 - (void)unregister:(CDVInvokedUrlCommand*)command;
@@ -68,9 +68,9 @@
     return actionCategory;
 }
 
-- (void)currentActionIndentifier: (NSString*) indentifier;
+- (void)currentActionIdentifier: (NSString*) identifier;
 {
-    actionIndentifier = indentifier;
+    actionIdentifier = identifier;
 }
 
 - (void)init:(CDVInvokedUrlCommand*)command;
@@ -272,9 +272,9 @@
             [additionalData setObject:[NSNumber numberWithBool:NO] forKey:@"foreground"];
         }
         
-        if (actionIndentifier) {
-            [additionalData setObject:actionIndentifier forKey:@"actionIndentifier"];
-            actionIndentifier = nil;
+        if (actionIdentifier) {
+            [additionalData setObject:actionIdentifier forKey:@"actionIdentifier"];
+            actionIdentifier = nil;
         }
         
         [message setObject:additionalData forKey:@"additionalData"];
