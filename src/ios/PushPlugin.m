@@ -33,6 +33,7 @@
 @synthesize callbackId;
 @synthesize notificationCallbackId;
 @synthesize callback;
+@synthesize actionIndentifier;
 
 
 - (void)unregister:(CDVInvokedUrlCommand*)command;
@@ -65,6 +66,11 @@
                     forContext:UIUserNotificationActionContextMinimal];
     
     return actionCategory;
+}
+
+- (void)currentActionIndentifier: (NSString*) indentifier;
+{
+    actionIndentifier = indentifier;
 }
 
 - (void)init:(CDVInvokedUrlCommand*)command;
@@ -264,6 +270,11 @@
             [additionalData setObject:[NSNumber numberWithBool:YES] forKey:@"foreground"];
         } else {
             [additionalData setObject:[NSNumber numberWithBool:NO] forKey:@"foreground"];
+        }
+        
+        if (actionIndentifier) {
+            [additionalData setObject:actionIndentifier forKey:@"actionIndentifier"];
+            actionIndentifier = nil;
         }
         
         [message setObject:additionalData forKey:@"additionalData"];

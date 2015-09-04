@@ -107,10 +107,26 @@ static char launchNotificationKey;
 //For interactive notification only
 - (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forRemoteNotification:(NSDictionary *)userInfo completionHandler:(void(^)())completionHandler
 {
-    //handle the actions
-    if ([identifier isEqualToString:@"declineAction"]){
+    PushPlugin *pushHandler = [self getCommandInstance:@"PushNotification"];
+    [pushHandler currentActionIndentifier:identifier];
+    
+    // Get application state for iOS4.x+ devices, otherwise assume active
+    UIApplicationState appState = UIApplicationStateActive;
+    if ([application respondsToSelector:@selector(applicationState)]) {
+        appState = application.applicationState;
     }
-    else if ([identifier isEqualToString:@"answerAction"]){
+    
+    if (appState == UIApplicationStateActive) {
+        pushHandler.notificationMessage = userInfo;
+        pushHandler.isInline = YES;
+        [pushHandler notificationReceived];
+    } else {
+        //save it for later
+        self.launchNotification = userInfo;
+    }
+    
+    if (completionHandler) {
+        completionHandler();
     }
 }
 
