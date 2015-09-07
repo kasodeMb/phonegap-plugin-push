@@ -73,6 +73,13 @@
     actionIdentifier = identifier;
 }
 
+- (void)pendingNotification:(CDVInvokedUrlCommand*) command;
+{
+    self.callbackId = command.callbackId;
+    if (notificationMessage)			// if there is a pending startup notification
+        [self notificationReceived];	// go ahead and process it
+}
+
 - (void)init:(CDVInvokedUrlCommand*)command;
 {
     NSLog(@"Push Plugin register called");
@@ -144,6 +151,7 @@
      (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
 #endif
     
+    NSLog(@"Pending Notification: %@", notificationMessage);
     if (notificationMessage)			// if there is a pending startup notification
         [self notificationReceived];	// go ahead and process it
 }
@@ -224,6 +232,7 @@
         NSMutableDictionary* message = [NSMutableDictionary dictionaryWithCapacity:4];
         NSMutableDictionary* additionalData = [NSMutableDictionary dictionaryWithCapacity:4];
         
+        NSLog(@"DATA: %@", notificationMessage);
         
         for (id key in notificationMessage) {
             if ([key isEqualToString:@"aps"]) {
@@ -279,10 +288,28 @@
         
         [message setObject:additionalData forKey:@"additionalData"];
         
-        // send notification message
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
-        [pluginResult setKeepCallbackAsBool:YES];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+         // send notification message
+        if (self.callbackId == nil) {
+            NSError *error;
+            NSString *jsonString;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:message
+                                                               options:0
+                                                                 error:&error];
+            
+            if (!jsonData) {
+                NSLog(@"Got an error: %@", error);
+            } else {
+                jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            }
+            
+            NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", @"window.plugins.pushNotification.pushCB", jsonString];
+            [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
+        } else {
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+            [pluginResult setKeepCallbackAsBool:YES];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        }
+       
         
         self.notificationMessage = nil;
     }

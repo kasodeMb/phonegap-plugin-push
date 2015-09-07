@@ -55,5 +55,6 @@
 - (void)setNotificationMessage:(NSDictionary *)notification;
 - (void)notificationReceived;
 - (void)currentActionIdentifier:(NSString*)identifier;
+- (void)pendingNotification:(CDVInvokedUrlCommand*) command;
 
 @end

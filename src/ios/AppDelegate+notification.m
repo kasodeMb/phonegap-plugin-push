@@ -94,7 +94,9 @@ static char launchNotificationKey;
         pushHandler.isInline = NO;
         pushHandler.notificationMessage = self.launchNotification;
         self.launchNotification = nil;
-        [pushHandler performSelectorOnMainThread:@selector(notificationReceived) withObject:pushHandler waitUntilDone:NO];
+        if (pushHandler.callbackId != nil) { //no callback id, so let wait a re-initialize.
+            [pushHandler performSelectorOnMainThread:@selector(notificationReceived) withObject:pushHandler waitUntilDone:NO];
+        }
     }
 }
 
@@ -110,20 +112,10 @@ static char launchNotificationKey;
     PushPlugin *pushHandler = [self getCommandInstance:@"PushNotification"];
     [pushHandler currentActionIdentifier:identifier];
     
-    // Get application state for iOS4.x+ devices, otherwise assume active
-    UIApplicationState appState = UIApplicationStateActive;
-    if ([application respondsToSelector:@selector(applicationState)]) {
-        appState = application.applicationState;
-    }
-    
-    if (appState == UIApplicationStateActive) {
-        pushHandler.notificationMessage = userInfo;
-        pushHandler.isInline = YES;
-        [pushHandler notificationReceived];
-    } else {
-        //save it for later
-        self.launchNotification = userInfo;
-    }
+    //save it for later
+    self.launchNotification = userInfo;
+    pushHandler.notificationMessage = userInfo;
+    pushHandler.isInline = NO;
     
     if (completionHandler) {
         completionHandler();
